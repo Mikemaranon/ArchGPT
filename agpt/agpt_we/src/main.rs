@@ -1,17 +1,29 @@
 use std::env;
+use std::error::Error;
+use agpt_we::web_engine::run_query;
 
-fn main() {
+// ------------------------------------
+// Main function orchestrating everything
+// ------------------------------------
+fn main() -> Result<(), Box<dyn Error>> {
+    // Read user query from CLI args
     let args: Vec<String> = env::args().collect();
-    let query = if args.len() > 1 {
-        args[1..].join(" ")
-    } else {
-        "rust tutorial".to_string()
-    };
-
-    let results = agpt_we::search(&query);
-
-    if let Err(e) = agpt_we::save_results_markdown(&query, &results, "results") {
-        eprintln!("Failed to save markdown: {}", e);
+    if args.len() < 2 {
+        eprintln!("Usage: cargo run \"your query here\"");
+        std::process::exit(1);
     }
+    
+    let query = args[1..].join(" ");
+    let output_folder = "results";
+
+    println!("[INFO] Starting web engine for query: {}", query);
+
+    
+    match run_query(&query, output_folder) {
+        Ok(_) => println!("Done! Results saved successfully."),
+        Err(e) => eprintln!("[ERROR] An error occurred: {}", e),
+    }
+
+    Ok(())
 }
 
